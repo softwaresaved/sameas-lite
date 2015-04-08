@@ -30,6 +30,7 @@
         "fabpot/php-cs-fixer": "*",
         "phploc/phploc": "*",
         "phpunit/PHPUnit": "*",
+        "phpunit/dbunit": "*",
         "behat/behat": "*"
     },
 
