@@ -30,7 +30,7 @@ checks:
 
 tests:
 	# run tests
-	vendor/bin/phpunit --bootstrap vendor/autoload.php tests/phpUnit/
+	vendor/bin/phpunit --configuration tests/phpUnit/test-sqlite-config.xml  --bootstrap vendor/autoload.php tests/phpUnit/
 
 docs:
 	# produce class documentation
