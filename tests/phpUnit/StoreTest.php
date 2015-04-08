@@ -37,14 +37,80 @@ namespace SameAsLite;
 /**
  * PHPUnit tests for the \SameAsLite\Store class.
  */
-class StoreTest extends \PHPUnit_Framework_TestCase
+class StoreTest extends \PHPUnit_Extensions_Database_TestCase
 {
+    /** @var string DSN Connection string to use **/
+    private $dsn = null;
 
-    /** @const DSN The DSN Connection string to use **/
-    const DSN = 'sqlite:test.sqlite';
+    /** @var string|null Database name **/
+    private $db_name = null;
 
-    /** @const DSN The name of the store (used to form table names) **/
-    const STORE_NAME = 'test';
+    /** @var string|null Database username **/
+    private $user = null;
+
+    /** @var string|null Database password **/
+    private $password = null;
+
+    /** @var string Name of the store (used to form table names) **/
+    private $store_name = 'StoreTest';
+
+    /** @var \PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection Connection object **/
+    private $connection;
+
+    /** @var \PDO PDO object for the DB, once opened **/
+    private $pdo;
+
+    /**
+     * Set up test fixture.
+     * Read database configuration from phpUnit $GLOBALS array.
+     * The following entries are sought:
+     * - DB_DSN - database DSN.
+     * - DB_NAME - database name (optional for SQLite).
+     * - DB_USER - username (optional for SQLite)
+     * - DB_PASSWORD - password (optional for SQLite).
+     */
+    public function setUp()
+    {
+        $this->dsn = $GLOBALS['DB_DSN'];
+        if (array_key_exists('DB_NAME', $GLOBALS)) {
+            $this->db_name = $GLOBALS['DB_NAME'];
+        }
+        if (array_key_exists('DB_USER', $GLOBALS)) {
+            $this->user = $GLOBALS['DB_USER'];
+        }
+        if (array_key_exists('DB_PASSWORD', $GLOBALS)) {
+            $this->password = $GLOBALS['DB_PASSWORD'];
+        }
+        parent::setUp();
+    }
+
+    /**
+     * Tear down test fixture.
+     * Drop database table that may have been created.
+     */
+    public function tearDown()
+    {
+        $this->pdo->exec("DROP TABLE IF EXISTS " . $this->store_name . ";");
+        parent::tearDown();
+    }
+
+    /**
+     * @return PHPUnit_Extensions_Database_DB_IDatabaseConnection
+     */
+    public function getConnection()
+    {
+        $this->pdo = new \PDO($this->dsn, $this->user, $this->password);
+        $this->connection = $this->createDefaultDBConnection($this->pdo, $this->db_name);
+        return $this->connection;
+    }
+
+    /**
+     * @return PHPUnit_Extensions_Database_DataSet_IDataSet
+     */
+    public function getDataSet()
+    {
+        return new \PHPUnit_Extensions_Database_DataSet_DefaultDataSet();
+    }
 
     /**
      * Check that an exception is raised if DSN name is invalid
@@ -54,7 +120,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionIsRaisedForInvalidDSN()
     {
-        new \SameAsLite\Store('foo:baa', self::STORE_NAME);
+        new \SameAsLite\Store('foo:baa', $this->store_name);
     }
 
     /**
@@ -65,7 +131,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionIsRaisedForInvalidDbaseTableName()
     {
-        new \SameAsLite\Store(self::DSN, 'invalid name!');
+        new \SameAsLite\Store($this->dsn, 'invalid name!');
     }
 
     /**
@@ -75,7 +141,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testStoreCanBeConstructedForValidConstructorArguments()
     {
-        $s = new Store(self::DSN, self::STORE_NAME);
+        $s = new Store($this->dsn, $this->store_name, $this->user, $this->password, $this->db_name);
         $this->assertInstanceOf('SameAsLite\\Store', $s);
     }
 
@@ -86,10 +152,43 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testAnEmptyStoreCanBeDumped()
     {
-        $s = new Store(self::DSN, self::STORE_NAME);
+        $s = new Store($this->dsn, $this->store_name, $this->user, $this->password, $this->db_name);
         $expected = array();
         $result = $s->dumpStore();
         $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * Check a new pair can be added and the Store state is as expected
+     *
+     * @covers \SameAsLite\Store::assertPair
+     */
+    public function testAssertPair()
+    {
+        $s = new Store($this->dsn, $this->store_name, $this->user, $this->password, $this->db_name);
+        $s->assertPair("a", "b");
+
+        $canons = $s->allCanons();
+        $this->assertEquals(1, count($canons));
+        $this->assertTrue(in_array("a", $canons));
+
+        $symbols = $s->querySymbol("a");
+        $this->assertEquals(2, count($symbols));
+        $this->assertTrue(in_array("a", $symbols));
+        $this->assertTrue(in_array("b", $symbols));
+
+        $symbols = $s->querySymbol("b");
+        $this->assertEquals(2, count($symbols));
+        $this->assertTrue(in_array("a", $symbols));
+        $this->assertTrue(in_array("b", $symbols));
+
+        $canon = $s->getCanon("a");
+        $this->assertEquals(1, count($canon));
+        $this->assertTrue(in_array("a", $canon));
+
+        $canon = $s->getCanon("b");
+        $this->assertEquals(1, count($canon));
+        $this->assertTrue(in_array("a", $canon));
     }
 }
 
