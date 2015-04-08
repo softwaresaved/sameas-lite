@@ -52,7 +52,7 @@ class StoreTest extends \PHPUnit_Extensions_Database_TestCase
     private $password = null;
 
     /** @var string Name of the store (used to form table names) **/
-    private $store_name = 'StoreTest';
+    private $store_name = null;
 
     /** @var \PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection Connection object **/
     private $connection;
@@ -81,6 +81,7 @@ class StoreTest extends \PHPUnit_Extensions_Database_TestCase
         if (array_key_exists('DB_PASSWORD', $GLOBALS)) {
             $this->password = $GLOBALS['DB_PASSWORD'];
         }
+        $this->store_name = str_replace("\\","_",get_class());
         parent::setUp();
     }
 
