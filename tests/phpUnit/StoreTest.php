@@ -166,30 +166,33 @@ class StoreTest extends \PHPUnit_Extensions_Database_TestCase
      */
     public function testAssertPair()
     {
+        $canon = "http://www.wikidata.org/entity/Q1953777";
+        $symbol = "http://dbpedia.org/resource/Oxford";
+
         $s = new Store($this->dsn, $this->store_name, $this->user, $this->password, $this->db_name);
-        $s->assertPair("a", "b");
+        $s->assertPair($canon, $symbol);
 
         $canons = $s->allCanons();
         $this->assertEquals(1, count($canons));
-        $this->assertTrue(in_array("a", $canons));
+        $this->assertTrue(in_array($canon, $canons));
 
-        $symbols = $s->querySymbol("a");
+        $symbols = $s->querySymbol($canon);
         $this->assertEquals(2, count($symbols));
-        $this->assertTrue(in_array("a", $symbols));
-        $this->assertTrue(in_array("b", $symbols));
+        $this->assertTrue(in_array($canon, $symbols));
+        $this->assertTrue(in_array($symbol, $symbols));
 
-        $symbols = $s->querySymbol("b");
+        $symbols = $s->querySymbol($symbol);
         $this->assertEquals(2, count($symbols));
-        $this->assertTrue(in_array("a", $symbols));
-        $this->assertTrue(in_array("b", $symbols));
+        $this->assertTrue(in_array($canon, $symbols));
+        $this->assertTrue(in_array($symbol, $symbols));
 
-        $canon = $s->getCanon("a");
-        $this->assertEquals(1, count($canon));
-        $this->assertTrue(in_array("a", $canon));
+        $canons = $s->getCanon($canon);
+        $this->assertEquals(1, count($canons));
+        $this->assertTrue(in_array($canon, $canons));
 
-        $canon = $s->getCanon("b");
+        $canons = $s->getCanon($symbol);
         $this->assertEquals(1, count($canon));
-        $this->assertTrue(in_array("a", $canon));
+        $this->assertTrue(in_array($canon, $canons));
     }
 }
 
