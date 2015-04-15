@@ -194,6 +194,19 @@ class StoreTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertEquals(1, count($canon));
         $this->assertTrue(in_array($canon, $canons));
     }
+
+    /**
+     * Check that analyse successfully completes.
+     *
+     * @covers \SameAsLite\Store::analyse
+     */
+    public function testAnalyse()
+    {
+        $s = new Store($this->dsn, $this->store_name, $this->user, $this->password, $this->db_name);
+        $s->assertPair('http://www.wikidata.org/entity/Q23436', 'http://www.wikidata.org/entity/Q23436');
+        $result = $s->analyse();
+        $this->assertGreaterThan(0, count($result));
+    }
 }
 
 // vim: set filetype=php expandtab tabstop=4 shiftwidth=4:
