@@ -307,7 +307,7 @@ class WebApp
             '/datasets/:store/search/:string',
             'search',
             'Search',
-            'Find symols which contain/match the search string/pattern'
+            'Find symbols which contain/match the search string/pattern'
         );
 
         // Single symbol stuff
@@ -323,7 +323,7 @@ class WebApp
             '/datasets/:store/symbols/:symbol',
             'removeSymbol',
             'Delete symbol',
-            'TBC',
+            'Delete the pair that has the given symbol',
             true,
             'text/html,text/plain'
         );
