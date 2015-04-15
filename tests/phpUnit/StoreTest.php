@@ -91,6 +91,19 @@ class StoreTest extends \PHPUnit_Framework_TestCase
         $result = $s->dumpStore();
         $this->assertEquals($expected, $result);
     }
+
+    /**
+     * Check that analyse successfully completes.
+     *
+     * @covers \SameAsLite\Store::analyse
+     */
+    public function testAnalyse()
+    {
+        $s = new Store(self::DSN, self::STORE_NAME);
+        $s->assertPair('http://www.wikidata.org/entity/Q23436', 'http://www.wikidata.org/entity/Q23436');
+        $result = $s->analyse();
+        $this->assertGreaterThan(0, count($result));
+    }
 }
 
 // vim: set filetype=php expandtab tabstop=4 shiftwidth=4:

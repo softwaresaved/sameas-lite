@@ -820,7 +820,11 @@ class Store
                 $s = $row['symbol'];
                 $b = $row['canon'];
                 $nSymbols++;
-                $bundleSizes[$b]++;
+                if (array_key_exists($b, $bundleSizes)) {
+                    $bundleSizes[$b]++;
+                } else {
+                   $bundleSizes[$b] = 0;
+                }
                 if (substr($s, 0, 7) == 'http://') {
                     // http:// URI
                     $httpSymbols[] = $s;
