@@ -1029,7 +1029,7 @@ class WebApp
      */
     public function removeSymbol($store, $symbol)
     {
-        $this->stores[$store]->removeSymbol($symbol);
+        $result = $this->stores[$store]->removeSymbol($symbol);
         $this->outputSuccess($result);
     }
 
