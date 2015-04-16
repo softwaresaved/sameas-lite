@@ -54,7 +54,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionIsRaisedForInvalidDSN()
     {
-        new \SameAsLite\Store('foo:baa', self::STORE_NAME);
+        new \SameAsLite\SqLiteStore('foo:baa', self::STORE_NAME);
     }
 
     /**
@@ -65,7 +65,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionIsRaisedForInvalidDbaseTableName()
     {
-        new \SameAsLite\Store(self::DSN, 'invalid name!');
+        new \SameAsLite\SqLiteStore(self::DSN, 'invalid name!');
     }
 
     /**
@@ -75,7 +75,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testStoreCanBeConstructedForValidConstructorArguments()
     {
-        $s = new Store(self::DSN, self::STORE_NAME);
+        $s = new SqLiteStore(self::DSN, self::STORE_NAME);
         $this->assertInstanceOf('SameAsLite\\Store', $s);
     }
 
@@ -86,7 +86,7 @@ class StoreTest extends \PHPUnit_Framework_TestCase
      */
     public function testAnEmptyStoreCanBeDumped()
     {
-        $s = new Store(self::DSN, self::STORE_NAME);
+        $s = new SqLiteStore(self::DSN, self::STORE_NAME);
         $expected = array();
         $result = $s->dumpStore();
         $this->assertEquals($expected, $result);

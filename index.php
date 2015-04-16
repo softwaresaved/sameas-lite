@@ -48,7 +48,7 @@ $app = new \SameAsLite\WebApp(array(
 // get that method to instantiate the \SameAsLite\Store object?
 
 $app->addDataset(
-    new \SameAsLite\Store(
+    new \SameAsLite\MySqlStore(
         'mysql:host=127.0.0.1;port=3306;charset=utf8',
         'webdemo',
         'testuser',
@@ -65,7 +65,7 @@ $app->addDataset(
 );
 
 $app->addDataset(
-    new \SameAsLite\Store(
+    new \SameAsLite\MySqlStore(
         'mysql:host=127.0.0.1;port=3306;charset=utf8',
         'table1',
         'testuser',

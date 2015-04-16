@@ -41,9 +41,8 @@ namespace SameAsLite;
  *      If there are such bundles, then the system will largely ignore them.
  * TODO Some of the queries don't need Injectio Protection, as (for example canons) came out of the DB
  */
-class Store
+abstract class Store
 {
-
     /** @var string $dbType Indicates the type of database, ie sqlite|mysql */
     private $dbType = null;
 
@@ -51,13 +50,13 @@ class Store
     protected $dbHandle;
 
     /** @var string $dsn The PDO dataset connection strin */
-    private $dsn = null;
+    protected $dsn = null;
 
     /** @var string|null $dbUser Database usename */
-    private $dbUser = null;
+    protected $dbUser = null;
 
     /** @var string|null $dbPass Database password */
-    private $dbPass = null;
+    protected $dbPass = null;
 
     /**
      * @var string|null $dbName Optional database name, used where the PDO
@@ -80,7 +79,6 @@ class Store
      */
     public function __construct($dsn, $name, $user = null, $pass = null, $dbName = null)
     {
-
         // get dbase type
         if (($p = strpos($dsn, ':')) !== false) {
             $this->dbType = substr($dsn, 0, $p);
@@ -89,24 +87,11 @@ class Store
         }
 
         // ensure dbase type is one we can handle
-        $acceptable = array('mysql', 'sqlite');
-        if (!in_array($this->dbType, $acceptable)) {
+        if ($this->dbType != $this->getDsnPrefix()) {
             throw new \InvalidArgumentException(
-                'Invalid PDO database connection string, only "mysql" and "sqlite" databases are supported.'
+                'Invalid PDO database connection string. Expect ' .
+                $this->getDsnPrefix() . ' prefix.'
             );
-        }
-
-        // ensure we have correct info if mysql
-        if ($this->dbType == 'mysql') {
-            if ($user == null) {
-                throw new \InvalidArgumentException('You must specify the $user parameter for mysql databases.');
-            }
-            if ($pass == null) {
-                throw new \InvalidArgumentException('You must specify the $pass parameter for mysql databases.');
-            }
-            if ($dbName == null) {
-                throw new \InvalidArgumentException('You must specify the $dbName parameter for mysql databases.');
-            }
         }
 
         // ensure store name is sensible
@@ -115,7 +100,6 @@ class Store
                 'Invalid store name: only characters A-Z, a-z, 0-9 and underscores are permitted.'
             );
         }
-
         // save config
         $this->dsn = $dsn;
         $this->storeName = $name;
@@ -149,31 +133,12 @@ class Store
         // For debugging and sanity, make PDO report any problems, not fail silently
         $this->dbHandle->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-        // if mysql, we need to select the appropriate database
-        if ($this->dbType == 'mysql') {
-            try {
-                $this->dbHandle->exec('USE ' . $this->dbName);
-            } catch (\PDOException $e) {
-                throw new \Exception(
-                    'Failed to access database named ' . $this->dbName . ' // ' .
-                    $e->getMessage()
-                );
-            }
-        }
+        // Select the appropriate database
+        $this->useDatabase();
 
         // try to create tables for this store, if they don't exist
         try {
-            if ($this->dbType == 'sqlite') {
-                $sql = 'CREATE TABLE IF NOT EXISTS ' . $this->storeName .
-                    ' (canon TEXT, symbol TEXT PRIMARY KEY)' .
-                    ' WITHOUT ROWID;' .
-                    ' CREATE INDEX IF NOT EXISTS ' . $this->storeName . '_idx' .
-                    ' ON ' . $this->storeName . ' (canon);';
-            } else {
-                $sql = 'CREATE TABLE IF NOT EXISTS ' . $this->storeName .
-                    ' (canon VARCHAR(256), symbol VARCHAR(256), PRIMARY KEY (symbol), INDEX(canon))' .
-                    ' ENGINE = MYISAM;';
-            }
+            $sql = $this->getCreateTablesSql();
             $this->dbHandle->exec($sql);
         } catch (\PDOException $e) {
             throw new \Exception(
@@ -515,10 +480,7 @@ class Store
         }
 
         try {
-            $sql = 'DROP TABLE IF EXISTS ' . $this->storeName . ';';
-            if ($this->dbType == 'sqlite') {
-                $sql .= 'DROP INDEX IF EXISTS ' . $this->storeName . '_idx;';
-            }
+            $sql = $this->getDeleteStoreSql();
             $statement = $this->dbHandle->prepare($sql);
             $statement->execute();
         } catch (\PDOException $e) {
@@ -537,76 +499,11 @@ class Store
         }
 
         try {
-            if ($this->dbType === 'sqlite') {
-                // SQLite doesn't have TRUNCATE
-                $statement = $this->dbHandle->prepare("DELETE FROM $this->storeName;");
-            } else {
-                $statement = $this->dbHandle->prepare("TRUNCATE $this->storeName;");
-            }
+            $sql = $this->getEmptyStoreSql();
+            $statement = $this->dbHandle->prepare($sql);
             $statement->execute();
         } catch (\PDOException $e) {
             $this->error("Database failure to empty store", $e);
-        }
-    }
-
-    /**
-     * Export the contents of a MySQL database to file. Mainly for diagnostics,
-     * but can also be used (with care) for backup/restore.
-     *
-     * @param string $file The file name to which the data is written (optional)
-     * @throws \Exception if the database is not MySQL
-     */
-    public function exportToFile($file = null)
-    {
-        if ($this->dbType == 'sqlite') {
-            throw new \Exception('This function is only supported for MySQL databases');
-        }
-
-        // skip if we've already connected
-        if ($this->dbHandle == null) {
-            $this->connect();
-        }
-
-        if ($file == null) {
-            $file = "sameAsLite_backup_{$this->storeName}.tsv";
-        }
-
-        try {
-            // TODO: this is MySQL specific
-            $sql = "SELECT canon, symbol FROM $this->storeName INTO OUTFILE '$file' FIELDS TERMINATED BY '\t';";
-            $statement = $this->dbHandle->prepare($sql);
-            $statement->execute();
-        } catch (\PDOException $e) {
-            $this->error("Unable to dump store", $e);
-        }
-    }
-
-    /**
-     * Takes the output of exportToFile and loads into a MySQL based Store
-     *
-     * Overwrites any existing values, leaving the others intact.
-     * Assumes the source data is valid.
-     *
-     * @param string $file The file name of the source data to be asserted
-     * @throws \Exception if the database is not MySQL
-     */
-    public function loadFromFile($file)
-    {
-        if ($this->dbType == 'sqlite') {
-            throw new \Exception('This function is only supported for MySQL databases');
-        }
-
-        // skip if we've already connected
-        if ($this->dbHandle == null) {
-            $this->connect();
-        }
-
-        try {
-            $sql = "LOAD DATA INFILE '$file' INTO TABLE $this->storeName FIELDS TERMINATED BY '\t';";
-            $statement = $this->dbHandle->prepare($sql);
-            $statement->execute();
-        } catch (\PDOException $e) {
-            $this->error("Unable to restore store from file '$file'", $e);
         }
     }
 
@@ -693,15 +590,8 @@ class Store
         }
 
         try {
-            if ($this->dbType === 'sqlite') {
-                // SQLite doesn't have SHOW TABLES"
-                $statement = $this->dbHandle->prepare(
-                    "SELECT name FROM sqlite_master " .
-                    "WHERE type='table' ORDER BY name;"
-                );
-            } else {
-                $statement = $this->dbHandle->prepare("SHOW TABLES");
-            }
+            $sql = $this->getListStoresSql();
+            $statement = $this->dbHandle->prepare($sql);
             $statement->execute();
             $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -993,6 +883,58 @@ class Store
         $additional = ($e == null) ? '' : ' // ' . $e->getMessage();
         throw new \Exception(get_class() . " (store '{$this->storeName}'): " . $message . $additional);
     }
+
+    /**
+     * Get DSN prefix accepted by this class.
+     * @return string. DSN prefix string.
+     */
+    abstract public function getDsnPrefix();
+
+    /**
+     * Select database to use.
+     * @throws \Exception Exception is thrown if connection fails or database cannot be accessed.
+     */
+    abstract protected function useDatabase();
+
+    /**
+     * Gets SQL query to create a new store.
+     * @return string An SQL statement to create a new store table.
+     */
+    abstract protected function getCreateTablesSql();
+
+    /**
+     * Gets SQL statement to delete a whole store.
+     * @return string An SQL statement to delete the store table.
+     */
+    abstract protected function getDeleteStoreSql();
+
+    /**
+     * Gets SQL statement to clear out a whole store, leaving an empty table.
+     * @return string An SQL statement to empty the store table.
+     */
+    abstract protected function getEmptyStoreSql();
+
+    /**
+     * Gets SQL statement to list the sameAs stores in the database.
+     * @return string An SQL statement to list all the tables.
+     */
+    abstract protected function getListStoresSql();
+
+    /**
+     * Export the contents of a store table to file. 
+     * Mainly for diagnostics. but can also be used (with care) for 
+     * backup/restore.
+     * @param string $file The file name to which the data is written (optional).
+     */
+    abstract public function exportToFile($file = null);
+
+    /**
+     * Takes the output of exportToFile and loads into a store table.
+     * Overwrites any existing values, leaving the others intact.
+     * Assumes the source data is valid.
+     * @param string $file The file name of the source data to be asserted.
+     */
+    abstract public function loadFromFile($file);
 }
 
 // vim: set filetype=php expandtab tabstop=4 shiftwidth=4:
