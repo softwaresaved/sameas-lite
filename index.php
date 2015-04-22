@@ -7,7 +7,7 @@
  *
  * @package   SameAsLite
  * @author    Seme4 Ltd <sameAs@seme4.com>
- * @copyright 2009 - 2014 Seme4 Ltd
+ * @copyright 2009 - 2015 Seme4 Ltd
  * @link      http://www.seme4.com
  * @version   0.0.1
  * @license   MIT Public License

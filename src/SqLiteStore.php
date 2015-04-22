@@ -6,7 +6,7 @@
  *
  * @package   SameAsLite
  * @author    Seme4 Ltd <sameAs@seme4.com>
- * @copyright 2009 - 2014 Seme4 Ltd
+ * @copyright 2009 - 2015 Seme4 Ltd
  * @link      http://www.seme4.com
  * @version   0.0.1
  * @license   MIT Public License
@@ -50,9 +50,6 @@ class SqLiteStore extends \SameAsLite\Store
      *
      * @param string $dsn    The PDO database connection string
      * @param string $name   Name of this store (used to define database tables)
-     * @param string $user   Optional database username
-     * @param string $pass   Optional database password
-     * @param string $dbName Optional database name
      *
      * @throws \InvalidArgumentException If any parameters are deemed invalid
      */
