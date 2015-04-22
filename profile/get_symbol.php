@@ -1,15 +1,18 @@
 <?php
 
 /**
- * sameAs Lite get symbol client and output timing information.
+ * Simple querySymbol profiler.
  *
  * Calculate time, in milliseconds, to create \SameAsLite\Store object
- * and invoke \SameAsLite\Store->querySymbol. These operations can
- * be run 1 or more times.
+ * and invoke \SameAsLite\Store->querySymbol. The operations can be
+ * invoked one or more times depending upon a command-line argument.
+ * Simple validation is supported so that execution can prematurely
+ * terminate if the expected number of symbols are not returned during
+ * any iteration.
  *
  * Usage:
  * <pre>
- * $ php get_symbol.php SYMBOL EXPECTED [COUNT]
+ * $ php query_symbol.php SYMBOL EXPECTED [COUNT]
  * </pre>
  * where:
  * - SYMBOL - a symbol to request from the sameAs Lite data store.
@@ -62,6 +65,7 @@ for ($i = 0; $i < $iterations; $i++)
     if ($actual != $expected)
     {
         printf("Unexpected number of rows. Expected %d. Found %d\n", $expected, $actual);
+        print_r($result);
         exit(1);
     }
     $end = microtime(true);
