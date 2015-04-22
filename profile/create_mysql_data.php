@@ -10,18 +10,18 @@
  *
  * Usage:
  * <pre>
- * $ php create_data.php DSN USER PASSWORD TABLE N
+ * $ php create_data.php DSN USER PASSWORD DB TABLE N
  * </pre>
  * where:
- * - DSN - database connection URL. The database should be specified
- *   using 'dbname=DBNAME' parameter.
+ * - DSN - database connection URL.
  * - USER - user name.
  * - PASSWORD - password.
+ * - DB - database name.
  * - TABLE - table name.
  * - N - number of canons and symbols per canon.
  * Example:
  * <pre>
- * $ php create_mysql_data.php 'mysql:host=127.0.0.1;port=3306;charset=utf8;dbname=testdb' testuser testpass table1 100
+ * $ php create_mysql_data.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' testuser testpass testdb table1 100
  * </pre>
  *
  * Copyright 2015 The University of Edinburgh
@@ -43,11 +43,14 @@
 $dsn = $argv[1];
 $user = $argv[2];
 $password = $argv[3];
-$table = $argv[4];
-$count = intval($argv[5]);
+$db = $argv[4];
+$table = $argv[5];
+$count = intval($argv[6]);
 
 $pdo = new \PDO($dsn, $user, $password);
 $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+$sql = 'USE ' . $db . ';';
+$pdo->exec($sql);
 $sql = 'CREATE TABLE IF NOT EXISTS ' . $table .
        ' (canon VARCHAR(256), symbol VARCHAR(256), PRIMARY KEY (symbol), INDEX(canon))' .
        ' ENGINE = MYISAM;';
