@@ -3,7 +3,7 @@
 /**
  * Simple querySymbol profiler.
  *
- * Calculate time, in milliseconds, to create \SameAsLite\Store object
+ * Calculate time, in milliseconds, to create \SameAsLite\MySqlStore object
  * and invoke \SameAsLite\Store->querySymbol. The operations can be
  * invoked one or more times depending upon a command-line argument.
  * Simple validation is supported so that execution can prematurely
@@ -73,7 +73,7 @@ if (count($argv) > 8)
 for ($i = 0; $i < $iterations; $i++)
 {
     $start = microtime(true);
-    $store = new \SameAsLite\Store($dsn, $table, $user, $password, $db);
+    $store = new \SameAsLite\MySqlStore($dsn, $table, $user, $password, $db);
     $result = $store->querySymbol($symbol);
     $end = microtime(true);
 
