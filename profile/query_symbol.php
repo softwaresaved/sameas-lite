@@ -15,9 +15,14 @@
  *
  * Usage:
  * <pre>
- * $ php query_symbol.php SYMBOL EXPECTED [COUNT]
+ * $ php query_symbol.php DSN USER PASSWORD DB TABLE SYMBOL EXPECTED [COUNT]
  * </pre>
  * where:
+ * - DSN - database connection URL.
+ * - USER - user name.
+ * - PASSWORD - password.
+ * - DB - database name.
+ * - TABLE - table name.
  * - SYMBOL - a symbol to request from the sameAs Lite data store.
  * - EXPECTED - expected number of symbols for this symbol.
  * - COUNT - number of iterations. Default 1.
@@ -26,8 +31,8 @@
  *
  * Example:
  * <pre>
- * $ php get_symbol.php http.51011a3008ce7eceba27c629f6d0020c 101 10
- * <pre>
+ * $ php query_symbol.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' testuser testpass testdb table1 http.51011a3008ce7eceba27c629f6d0020c 101 10
+ * </pre>
  *
  * Copyright 2015 The University of Edinburgh
  *
@@ -53,23 +58,23 @@ if (file_exists($LOG_FILE))
     unlink($LOG_FILE);
 }
 
-$expected = intval($argv[2]);
+$dsn = $argv[1];
+$user = $argv[2];
+$password = $argv[3];
+$db = $argv[4];
+$table = $argv[5];
+$symbol = $argv[6];
+$expected = intval($argv[7]);
 $iterations = 1;
-if (count($argv) > 3)
+if (count($argv) > 8)
 {
-    $iterations = intval($argv[3]);
+    $iterations = intval($argv[8]);
 }
-for ($i = 0; $i < $iterations; $i++) 
+for ($i = 0; $i < $iterations; $i++)
 {
     $start = microtime(true);
-    $store = new \SameAsLite\Store(
-        'mysql:host=127.0.0.1;port=3306;charset=utf8',
-        'table1',
-        'testuser',
-        'testpass',
-        'testdb'
-    );
-    $result = $store->querySymbol($argv[1]);
+    $store = new \SameAsLite\Store($dsn, $table, $user, $password, $db);
+    $result = $store->querySymbol($symbol);
     $end = microtime(true);
 
     $actual = count($result);
