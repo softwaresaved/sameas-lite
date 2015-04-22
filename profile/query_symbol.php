@@ -80,8 +80,9 @@ for ($i = 0; $i < $iterations; $i++)
     $actual = count($result);
     if ($actual != $expected)
     {
-        printf("Unexpected number of rows. Expected %d. Found %d\n", $expected, $actual);
-        print_r($result);
+        error_log('Unexpected number of rows. Expected: ' . $expected 
+        . '. Found: ' . $actual);
+        error_log(print_r($result, TRUE));
         exit(1);
     }
     $total = $end - $start;

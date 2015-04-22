@@ -72,22 +72,22 @@ for ($i = 0; $i < $iterations; $i++)
 
     if ($errno != 0)
     {
-        printf("Unexpected error. cURL error number: %d, cURL error: %s\n", 
-            $errno, $error);
-        print_r($result); 
+        error_log('Unexpected error. cURL error number: ' . $errno
+            . '. cURL error: ' . $error);
+        error_log(print_r($result, TRUE)); 
         exit(1);
     }
     if ($http != 200)
     {
-        printf("Unexpected HTTP code. Expected: %d. Received: %d\n",
-            200, $http);
-        print_r($result); 
+        error_log('Unexpected HTTP code. Expected: ' . 200
+            . ' Received: ' . $http);
+        error_log(print_r($result, TRUE)); 
         exit(1);
     }
     if (strpos($result, "<h2>Not Found</h2>") != false)
     {
-        printf("Unexpected error. The return page contains 'Not Found'\n");
-        print_r($result);
+        error_log("Unexpected error. The return page contains 'Not Found'\n");
+        error_log(print_r($result, TRUE)); 
     }
     $total = $end - $start;
     printf("%.4f\n", $total);
