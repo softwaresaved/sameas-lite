@@ -1,7 +1,7 @@
 <?php
 
 /**
- * sameAs Lite random data creator.
+ * Random data creator.
  *
  * Create SQL script to populate a table with randomly created
  * canons and symbols. A seed is used so the random values
