@@ -9,6 +9,9 @@
  * Simple validation is supported so that execution can prematurely
  * terminate if the expected number of symbols are not returned during
  * any iteration.
+ * The symbols returned are also appended to a query_symbol.log file
+ * with each batch prefixed by the iteration number and each symbol
+ * on a new line.
  *
  * Usage:
  * <pre>
@@ -23,7 +26,7 @@
  *
  * Example:
  * <pre>
- * $ php get_symbol.php http.51011a3008ce7eceba27c629f6d0020c 101
+ * $ php get_symbol.php http.51011a3008ce7eceba27c629f6d0020c 101 10
  * <pre>
  *
  * Copyright 2015 The University of Edinburgh
@@ -44,6 +47,12 @@
 
 require_once 'vendor/autoload.php';
 
+$LOG_FILE="query_symbol.log";
+if (file_exists($LOG_FILE))
+{
+    unlink($LOG_FILE);
+}
+
 $expected = intval($argv[2]);
 $iterations = 1;
 if (count($argv) > 3)
@@ -61,6 +70,8 @@ for ($i = 0; $i < $iterations; $i++)
         'testdb'
     );
     $result = $store->querySymbol($argv[1]);
+    $end = microtime(true);
+
     $actual = count($result);
     if ($actual != $expected)
     {
@@ -68,8 +79,11 @@ for ($i = 0; $i < $iterations; $i++)
         print_r($result);
         exit(1);
     }
-    $end = microtime(true);
     $total = $end - $start;
     printf("%.4f\n", $total);
+    file_put_contents($LOG_FILE, $i . PHP_EOL, FILE_APPEND);
+    foreach ($result as $symbol) {
+        file_put_contents($LOG_FILE, $symbol . PHP_EOL, FILE_APPEND);
+    }
 }
 ?>
