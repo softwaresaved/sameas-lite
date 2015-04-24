@@ -30,10 +30,12 @@ namespace SameAsLite;
  */
 class ShellTimer
 {
+    /** @var string|null $dataFile Data file to append output to */
+    private $dataFile = null;
+
     /**
      * Set data file.
-     * @param string|null $dataFile Data file to append shell output
-     * to.
+     * @param string|null $dataFile Data file to append output to.
      */
     public function setDataFile($dataFile = null)
     {
@@ -43,7 +45,7 @@ class ShellTimer
     /**
      * Calculate time to run a shell command.
      * If a data file is set then its output is appended
-     * to this file.
+     * to this file, otherwise it is printed.
      * @param string $command Shell command.
      * @return float Execution time in seconds.
      * @throws \Exception If a non-zero return code is returned
@@ -64,7 +66,8 @@ class ShellTimer
     }
 
     /**
-     * Append the output array to the data file if defined.
+     * Append the output array to the data file if defined. Otherwise
+     * print them to standard output.
      * @param array $outputs Output array.
      */
     private function dumpOutputs($outputs)
@@ -75,6 +78,13 @@ class ShellTimer
             {
                 file_put_contents($this->dataFile, print_r($output, TRUE) .
                     PHP_EOL, FILE_APPEND);
+            }
+        }
+        else
+        {
+            foreach ($outputs as $output)
+            {
+                print_r($output . PHP_EOL);
             }
         }
     }

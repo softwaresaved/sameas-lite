@@ -6,11 +6,11 @@
  *
  * Usage:
  * <pre>
- * $ php Shell.php COMMAND DATAFILE
+ * $ php Shell.php COMMAND [DATAFILE]
  * </pre>
  * where:
  * - URL - shell command to run.
- * - DATAFILE - file to log query results into.
+ * - DATAFILE - optional file to log outputs to.
  *
  * Example:
  * <pre>
@@ -22,7 +22,12 @@ require_once 'vendor/autoload.php';
 require_once 'profile/ShellTimer.php';
 
 $cmd=$argv[1];
-$dataFile = $argv[2];
+$dataFile = null;
+if (count($argv) > 2)
+{
+    $dataFile = $argv[2];
+}
+
 $timer = new \SameAsLite\ShellTimer();
 $timer->setDataFile($dataFile);
 $total = $timer->execute($cmd);

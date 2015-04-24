@@ -31,26 +31,12 @@ namespace SameAsLite;
  */
 class CurlTimer
 {
-    /** @var string $url Prefix of URL to issue requests to */
-    private $url = null;
-    /** @var string|null $dataFile Data file to append outputs to */
+    /** @var string|null $dataFile Data file to append output to */
     private $dataFile = null;
 
     /**
-     * Constructor. Saves URL.
-     *
-     * @param string $url Prefix of URL to issue requests to. This
-     * is assumed not to have a trailing "/".
-     */
-    public function __construct($url)
-    {
-        $this->url = $url;
-    }
-
-    /**
      * Set data file.
-     * @param string|null $dataFile Data file to append any
-     * outputs to.
+     * @param string|null $dataFile Data file to append output to.
      */
     public function setDataFile($dataFile = null)
     {
@@ -58,21 +44,19 @@ class CurlTimer
     }
 
     /**
-     * Calculate time to issue HTTP GET request and receive response
-     * to a URL composed from a given resource appended to the URL
-     * held by this class.
-     * If a data file is set then the response is appended
-     * to this file.
-     * @param string $resource  Resource to append to URL.
+     * Calculate time to issue HTTP GET request to and receive response
+     * from a URL.
+     * If a data file is set then its output is appended
+     * to this file, otherwise it is printed.
+     * @param string $url URL to issue requests to.
      * @return float Execution time in seconds.
      * @throws \Exception If an error arises, an HTTP response code
      * not equal to 200 is returned or if the response contains
      * <h2>Not Found</h2>".
      */
-    public function httpGet($resource)
+    public function httpGet($url)
     {
-        $getUrl = $this->url . '/' . $resource;
-        $session = curl_init($getUrl);
+        $session = curl_init($url);
         curl_setopt($session, CURLOPT_RETURNTRANSFER, 1);
         $start = microtime(true);
         $output = curl_exec($session);
@@ -101,8 +85,9 @@ class CurlTimer
     }
 
     /**
-     * Append the output to the data file if defined.
-     * @param array $output HTTP request output.
+     * Append the output to the data file if defined. Otherwise
+     * print them to standard output.
+     * @param array $output HTTP output.
      */
     private function dumpOutput($output)
     {
@@ -110,6 +95,10 @@ class CurlTimer
         {
             file_put_contents($this->dataFile, print_r($output, TRUE) .
                 PHP_EOL, FILE_APPEND);
+        }
+        else
+        {
+            print_r($output . PHP_EOL);
         }
     }
 }

@@ -6,18 +6,15 @@
  *
  * Usage:
  * <pre>
- * $ php Curl.php URL RESOURCE DATAFILE
+ * $ php Curl.php URL [DATAFILE]
  * </pre>
  * where:
- * - URL - prefix of URL to issue GET request to. This is assumed not
- *   to have a trailing "/".
- * - RESOURCE - resource to append to URL. The GET request is issued
- *   against URL/RESOURCE
- * - DATAFILE - file to log query results into.
+ * - URL - URL to issue GET request to.
+ * - DATAFILE - Optional file to log outputs to.
  *
  * Example:
  * <pre>
- * $ php Curl.php http://127.0.0.1/sameas-lite/datasets/test/symbols http.51011a3008ce7eceba27c629f6d0020c curl.dat
+ * $ php Curl.php http://127.0.0.1/sameas-lite/datasets/test/symbols/http.51011a3008ce7eceba27c629f6d0020c curl.dat
  * </pre>
  *
  * Copyright 2015 The University of Edinburgh
@@ -40,11 +37,13 @@ require_once 'vendor/autoload.php';
 require_once 'profile/CurlTimer.php';
 
 $url = $argv[1];
-$resource = $argv[2];
-$dataFile = $argv[3];
-
-$timer = new \SameAsLite\CurlTimer($url);
+$dataFile = null;
+if (count($argv) > 2)
+{
+    $dataFile = $argv[2];
+}
+$timer = new \SameAsLite\CurlTimer();
 $timer->setDataFile($dataFile);
-$total = $timer->httpGet($resource);
+$total = $timer->httpGet($url);
 printf("%.4f\n", $total);
 ?>
