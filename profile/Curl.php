@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Command-line tool to invoke \SameAsLite\CurlGetTimer, save
+ * Command-line tool to invoke \SameAsLite\CurlTimer, save
  * the results to a file and print the execution time.
  *
  * Usage:
  * <pre>
- * $ php CurlGet.php URL RESOURCE DATAFILE
+ * $ php Curl.php URL RESOURCE DATAFILE
  * </pre>
  * where:
  * - URL - prefix of URL to issue GET request to. This is assumed not
@@ -17,7 +17,7 @@
  *
  * Example:
  * <pre>
- * $ php CurlGet.php http://127.0.0.1/sameas-lite/datasets/test/symbols http.51011a3008ce7eceba27c629f6d0020c curl.dat
+ * $ php Curl.php http://127.0.0.1/sameas-lite/datasets/test/symbols http.51011a3008ce7eceba27c629f6d0020c curl.dat
  * </pre>
  *
  * Copyright 2015 The University of Edinburgh
@@ -37,13 +37,13 @@
  */
 
 require_once 'vendor/autoload.php';
-require_once 'profile/CurlGetTimer.php';
+require_once 'profile/CurlTimer.php';
 
 $url = $argv[1];
 $resource = $argv[2];
 $dataFile = $argv[3];
 
-$timer = new \SameAsLite\CurlGetTimer($url);
+$timer = new \SameAsLite\CurlTimer($url);
 $timer->setDataFile($dataFile);
 $total = $timer->httpGet($resource);
 printf("%.4f\n", $total);
