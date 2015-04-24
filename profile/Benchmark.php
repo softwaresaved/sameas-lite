@@ -1,27 +1,28 @@
 <?php
 
 /**
- * Command-line tool to invoke \SameAsLite\MySqlQuerySymbolTimer and
+ * Command-line tool to invoke \SameAsLite\ShelllTimer and
  * \SameAsLite\CurlGetTimer. The tool:
  * - Populates MySQL table with pseudo-random data using
  *   \SameAsLite\MySqlDataCreator.
  * - Picks two canon-symbol pairs from the data.
- * - For each Timer:
- *   - Queries for each canon and symbol in these pairs
- *     using the Timer N times.
- *   - Calculates the sum, average, standard deviation,
- *     minimum and maximum for the N times (in seconds) and prints these.
- * As each canon and symbol is requested N times, N * 4 times for
- * each Timer is collected.
+ * - Invokes ShellTimer to time execution of QuerySymbol.php for each
+ *   canon and symbol in these pairs, N times.
+ * - Invokes CurlTimer to time execution of an HTTP GET against the
+ *   REST endpoint for each canon and symbol in these pairs, N times.
+ * - As each canon and symbol is requested N times, N * 4 times for
+ *   each timer is collected.
+ * - For each timer, calculates the sum, average, standard deviation,
+ *   minimum and maximum of the times and prints these.
  * The tool outputs the following files:
- * - querySymbolData.dat - MySqlQuerySymbolTimer output data.
- * - querySymbolTimes.dat - MySqlQuerySymbolTimer times for each invocation.
- * - curlGetData.dat - CurlGetTimer output data.
- * - curlGetTimes.dat - CurlGetTimer times for each invocation.
+ * - shellData.dat - ShellTimer output data.
+ * - shellTimes.dat - ShellTimer times for each invocation.
+ * - curlData.dat - CurlTimer output data.
+ * - curlTimes.dat - CurlTimer times for each invocation.
  *
  * Usage:
  * <pre>
- * $ php TimeQueries.php DSN TABLE USER PASSWORD DB URL CANONS N
+ * $ php Benchmark.php DSN TABLE USER PASSWORD DB URL CANONS N
  * </pre>
  * where:
  * - DSN - database connection URL.
@@ -29,14 +30,15 @@
  * - USER - user name.
  * - PASSWORD - password.
  * - DB - database name.
- * - URL - prefix of URL to issue GET request to. This is assumed not
+ * - PHP - location of QuerySymbol PHP script.
+ * - URL - prefix of URL to issue GET requests to. This is assumed not
  *   to have a trailing "/".
  * - CANONS - number of canons, and symbols per canon to create.
  * - N - number of iterations.
  *
  * Example:
  * <pre>
- * $ php TimeQueries.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' table1 testuser testpass testdb  http://127.0.0.1/sameas-lite/datasets/test/symbols 100 10
+ * $ php profile/Benchmark.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' table1 testuser testpass testdb profile/QuerySymbol.php http://127.0.0.1/sameas-lite/datasets/test/symbols 100 100
  * </pre>
  *
  * Copyright 2015 The University of Edinburgh
@@ -56,9 +58,9 @@
  */
 
 require_once 'vendor/autoload.php';
+require_once 'profile/CurlTimer.php';
 require_once 'profile/MySqlDataCreator.php';
-require_once 'profile/MySqlQuerySymbolTimer.php';
-require_once 'profile/CurlGetTimer.php';
+require_once 'profile/ShellTimer.php';
 
 /**
  * Save an array of values into a file. Each value is appended
@@ -98,20 +100,21 @@ function analyseValues($values, $slug)
         $average, $stdDev, $sum, $min, $max, $count, $slug);
 }
 
-$queryDataFile="querySymbolData.dat";
-$queryTimesFile="querySymbolTimes.dat";
-$curlDataFile="curlGetData.dat";
-$curlTimesFile="curlGetTimes.dat";
+$shellDataFile="shellData.dat";
+$shellTimesFile="shellTimes.dat";
+$curlDataFile="curlData.dat";
+$curlTimesFile="curlTimes.dat";
 
 $dsn = $argv[1];
 $table = $argv[2];
 $user = $argv[3];
 $password = $argv[4];
 $db = $argv[5];
-$url = $argv[6];
+$script = $argv[6];
+$url = $argv[7];
 // Number of canons, and symbols per canon to create.
-$numCanons = $argv[7];
-$iterations = $argv[8];
+$numCanons = $argv[8];
+$iterations = $argv[9];
 
 // For a specific symbol, expect N+1 matching symbols.
 $expected = $numCanons + 1;
@@ -130,29 +133,32 @@ $symbols = array($pair1[0], $pair2[1], $pair1[1], $pair2[0]);
 
 printf("Average(s),StdDev(s),Total(s),Min(s),Max(s),Count,Run\n");
 
-$timer = new \SameAsLite\MySqlQuerySymbolTimer($dsn, $table, $user, $password, $db);
-$timer->setDataFile($queryDataFile);
+$timer = new \SameAsLite\ShellTimer();
+$timer->setDataFile($shellDataFile);
 $times = [];
 for ($i = 0; $i < $iterations; $i++)
 {
     foreach ($symbols as $symbol)
     {
-        $times[] = $timer->querySymbol($symbol, $expected);
+        $cmd = 'php ' . $script . ' \'' . $dsn . '\' ' . $table . ' ' .
+            $user . ' ' . $password . ' ' . $db . ' ' . $symbol;
+        $times[] = $timer->execute($cmd);
     }
 }
-saveValues($times, $queryTimesFile);
-analyseValues($times, "querySymbol");
+saveValues($times, $shellTimesFile);
+analyseValues($times, "shell");
 
-$timer = new \SameAsLite\CurlGetTimer($url);
+$timer = new \SameAsLite\CurlTimer($url);
 $timer->setDataFile($curlDataFile);
 $times = [];
 for ($i = 0; $i < $iterations; $i++)
 {
     foreach ($symbols as $symbol)
     {
-        $times[] = $timer->httpGet($symbol);
+        $symbolUrl = $url . '/' . $symbol;
+        $times[] = $timer->httpGet($symbolUrl);
     }
 }
 saveValues($times, $curlTimesFile);
-analyseValues($times, "curlGet");
+analyseValues($times, "curl");
 ?>

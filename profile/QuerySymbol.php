@@ -1,12 +1,11 @@
 <?php
-
 /**
- * Command-line tool to invoke \SameAsLite\MySqlQuerySymbolTimer, save
- * the query results to a file and print the execution time.
+ * Command-line tool to invoke \SameAsLite\Store->querySymbol using
+ * a MySQL data store.
  *
  * Usage:
  * <pre>
- * $ php QuerySymbol.php DSN TABLE USER PASSWORD DB SYMBOL DATAFILE [EXPECTED]
+ * $ php QuerySymbol.php DSN TABLE USER PASSWORD DB SYMBOL
  * </pre>
  * where:
  * - DSN - database connection URL.
@@ -15,12 +14,10 @@
  * - PASSWORD - password.
  * - DB - database name.
  * - SYMBOL - a symbol to request from the sameAs Lite data store.
- * - DATAFILE - file to log query results into..
- * - EXPECTED - expected number of symbols for this symbol.
  *
  * Example:
  * <pre>
- * $ php QuerySymbol.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' table1 testuser testpass testdb http.51011a3008ce7eceba27c629f6d0020c query.dat 101
+ * $ php QuerySymbol.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' table1 testuser testpass testdb http.51011a3008ce7eceba27c629f6d0020c
  * </pre>
  *
  * Copyright 2015 The University of Edinburgh
@@ -40,23 +37,18 @@
  */
 
 require_once 'vendor/autoload.php';
-require_once 'profile/MySqlQuerySymbolTimer.php';
 
 $dsn = $argv[1];
 $table = $argv[2];
 $user = $argv[3];
-$password = $argv[4];
+$pass = $argv[4];
 $db = $argv[5];
 $symbol = $argv[6];
-$dataFile = $argv[7];
-$expected = -1;
-if (count($argv) > 8)
-{
-    $expected = intval($argv[8]);
-}
 
-$timer = new \SameAsLite\MySqlQuerySymbolTimer($dsn, $table, $user, $password, $db);
-$timer->setDataFile($dataFile);
-$total = $timer->querySymbol($symbol, $expected);
-printf("%.4f\n", $total);
+$store = new \SameAsLite\Store($dsn, $table, $user, $pass, $db);
+$result = $store->querySymbol($symbol);
+foreach ($result as $r)
+{
+    print_r($r . PHP_EOL);
+}
 ?>
