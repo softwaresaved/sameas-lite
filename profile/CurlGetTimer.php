@@ -48,7 +48,7 @@ class CurlGetTimer
     }
 
     /**
-     *
+     * Set data file.
      * @param string|null $dataFile Data file to append GET
      * results to.
      */
@@ -82,29 +82,35 @@ class CurlGetTimer
         $error = curl_error($session);
         $http = curl_getinfo($session, CURLINFO_HTTP_CODE);
         curl_close($session);
+        $this->dumpResult($result);
         if ($errno != 0)
         {
             throw new \Exception('cURL error number: ' .
-                $errno . '. cURL error: ' . $error . PHP_EOL .
-                print_r($result, TRUE));
+                $errno . '. cURL error: ' . $error);
         }
         if ($http != 200)
         {
             throw new \Exception('Unexpected HTTP code. Expected: ' .
-                200 . ' Received: ' . $http . PHP_EOL .
-                print_r($result, TRUE));
+                200 . ' Received: ' . $http);
         }
         if (strpos($result, "<h2>Not Found</h2>") != false)
         {
-            throw new \Exception("The return page contains 'Not Found'\n" .
-                PHP_EOL . print_r($result, TRUE));
+            throw new \Exception("The return page contains 'Not Found'\n");
         }
+	return $total;
+    }
+
+    /**
+     * Append the results to the data file if defined.
+     * @param array $result HTTP GET result.
+     */
+    private function dumpResult($result)
+    {
         if ($this->dataFile != null)
         {
             file_put_contents($this->dataFile, print_r($result, TRUE) .
                 PHP_EOL, FILE_APPEND);
         }
-	return $total;
     }
 }
 ?>
