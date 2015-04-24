@@ -100,8 +100,8 @@ function analyseValues($values, $slug)
         $average, $stdDev, $sum, $min, $max, $count, $slug);
 }
 
-$shellDataFile="queryData.dat";
-$shellTimesFile="queryTimes.dat";
+$shellDataFile="shellData.dat";
+$shellTimesFile="shellTimes.dat";
 $curlDataFile="curlData.dat";
 $curlTimesFile="curlTimes.dat";
 
