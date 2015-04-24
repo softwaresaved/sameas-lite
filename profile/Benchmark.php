@@ -21,7 +21,7 @@
  *
  * Usage:
  * <pre>
- * $ php TimeQueries.php DSN TABLE USER PASSWORD DB URL CANONS N
+ * $ php Benchmark.php DSN TABLE USER PASSWORD DB URL CANONS N
  * </pre>
  * where:
  * - DSN - database connection URL.
@@ -36,7 +36,7 @@
  *
  * Example:
  * <pre>
- * $ php TimeQueries.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' table1 testuser testpass testdb  http://127.0.0.1/sameas-lite/datasets/test/symbols 100 10
+ * $ php Benchmark.php 'mysql:host=127.0.0.1;port=3306;charset=utf8' table1 testuser testpass testdb  http://127.0.0.1/sameas-lite/datasets/test/symbols 100 10
  * </pre>
  *
  * Copyright 2015 The University of Edinburgh
