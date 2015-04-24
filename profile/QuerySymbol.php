@@ -45,7 +45,7 @@ $pass = $argv[4];
 $db = $argv[5];
 $symbol = $argv[6];
 
-$store = new \SameAsLite\Store($dsn, $table, $user, $pass, $db);
+$store = new \SameAsLite\MySqlStore($dsn, $table, $user, $pass, $db);
 $result = $store->querySymbol($symbol);
 foreach ($result as $r)
 {
